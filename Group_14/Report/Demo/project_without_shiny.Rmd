@@ -1,0 +1,893 @@
+---
+title: "Analysis of 2018 Crime Data in the United States"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: scroll
+    fig_width: 8
+    fig_height: 7
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(DT)
+library(knitr)
+library(rpivotTable)
+library(plotly)
+library(openintro)
+library(highcharter)
+library(ggvis)
+library(shiny)
+library(viridis)
+library(RColorBrewer)
+library(corrplot)
+library(ggpubr)
+library(lmtest)
+library(tidyr)
+library(corrplot)
+library(maps)
+library(highcharter)
+library(heatmaply)
+library(scales)
+```
+
+
+
+HeatMap
+========================================
+
+```{r}
+# Data loading and crime related variables
+crime_data <- read.csv("processed_crimedata.csv")
+crime_related_vars <- c("murders", "murdPerPop", "rapes", "rapesPerPop", "robberies", "robbbPerPop", 
+                        "assaults", "assaultPerPop", "burglaries", "burglPerPop", "larcenies", 
+                        "larcPerPop", "autoTheft", "autoTheftPerPop", "arsons", "arsonsPerPop", 
+                        "ViolentCrimesPerPop", "nonViolPerPop")
+
+# Ensure variable order, grouping
+all_variables <- c("population", "householdsize", "racepctblack", "racePctWhite", "racePctAsian", 
+                   "racePctHisp", "agePct12t21", "agePct12t29", "agePct16t24", "agePct65up", 
+                   "numbUrban", "pctUrban", "medIncome", "pctWWage", "pctWFarmSelf", "pctWInvInc", 
+                   "pctWSocSec", "pctWPubAsst", "pctWRetire", "medFamInc", "perCapInc", "whitePerCap", 
+                   "blackPerCap", "indianPerCap", "AsianPerCap", "OtherPerCap", "HispPerCap", 
+                   "NumUnderPov", "PctPopUnderPov", "PctLess9thGrade", "PctNotHSGrad", "PctBSorMore", 
+                   "PctUnemployed", "PctEmploy", "PctEmplManu", "PctEmplProfServ", "PctOccupManu", 
+                   "PctOccupMgmtProf", "MalePctDivorce", "MalePctNevMarr", "FemalePctDiv", 
+                   "TotalPctDiv", "PersPerFam", "PctFam2Par", "PctKids2Par", "PctYoungKids2Par", 
+                   "PctTeen2Par", "PctWorkMomYoungKids", "PctWorkMom", "NumKidsBornNeverMar", 
+                   "PctKidsBornNeverMar", "NumImmig", "PctImmigRecent", "PctImmigRec5", "PctImmigRec8", 
+                   "PctImmigRec10", "PctRecentImmig", "PctRecImmig5", "PctRecImmig8", "PctRecImmig10", 
+                   "PctSpeakEnglOnly", "PctNotSpeakEnglWell", "PctLargHouseFam", "PctLargHouseOccup", 
+                   "PersPerOccupHous", "PersPerOwnOccHous", "PersPerRentOccHous", "PctPersOwnOccup", 
+                   "PctPersDenseHous", "PctHousLess3BR", "MedNumBR", "HousVacant", "PctHousOccup", 
+                   "PctHousOwnOcc", "PctVacantBoarded", "PctVacMore6Mos", "MedYrHousBuilt", 
+                   "PctHousNoPhone", "PctWOFullPlumb", "OwnOccLowQuart", "OwnOccMedVal", "OwnOccHiQuart", 
+                   "OwnOccQrange", "RentLowQ", "RentMedian", "RentHighQ", "RentQrange", "MedRent", 
+                   "MedRentPctHousInc", "MedOwnCostPctInc", "MedOwnCostPctIncNoMtg", "NumInShelters", 
+                   "NumStreet", "PctForeignBorn", "PctBornSameState", "PctSameHouse85", 
+                   "PctSameCity85", "PctSameState85", "LandArea", "PopDens", "PctUsePubTrans", 
+                   "LemasPctOfficDrugUn")
+
+# Group
+available_columns <- colnames(crime_data)
+groups <- list()
+for (i in seq(1, length(all_variables), by = 30)) {
+  end_idx <- min(i + 29, length(all_variables))
+  group <- unique(c(crime_related_vars, all_variables[i:end_idx]))
+  valid_group <- group[group %in% available_columns]
+  groups <- append(groups, list(valid_group))
+}
+```
+Column
+--------------------------------------------------
+
+### Group1
+```{r}
+# Group 1
+group1_data <- crime_data %>% select(all_of(groups[[1]]))
+correlation_matrix1 <- cor(group1_data, use = "complete.obs")
+diag(correlation_matrix1) <- NA
+
+heatmaply(
+  correlation_matrix1,
+  main = "Heatmap for Group 1",
+  xlab = "Variables",
+  ylab = "Variables",
+  fontsize_row = 8,
+  fontsize_col = 8,
+  width = 750,
+  height = 600,
+  Rowv = FALSE,
+  Colv = FALSE
+)
+
+```
+
+### Group2
+```{r}
+group2_data <- crime_data %>% select(all_of(groups[[2]]))
+correlation_matrix2 <- cor(group2_data, use = "complete.obs")
+diag(correlation_matrix2) <- NA
+
+heatmaply(
+  correlation_matrix2,
+  main = "Heatmap for Group 2",
+  xlab = "Variables",
+  ylab = "Variables",
+  fontsize_row = 8,
+  fontsize_col = 8,
+  width = 750,
+  height = 600,
+  Rowv = FALSE,
+  Colv = FALSE
+)
+
+```
+Column
+--------------------------------------------------
+
+### Group3
+```{r}
+group3_data <- crime_data %>% select(all_of(groups[[3]]))
+correlation_matrix2 <- cor(group3_data, use = "complete.obs")
+diag(correlation_matrix2) <- NA
+
+heatmaply(
+  correlation_matrix2,
+  main = "Heatmap for Group 2",
+  xlab = "Variables",
+  ylab = "Variables",
+  fontsize_row = 8,
+  fontsize_col = 8,
+  width = 750,
+  height = 600,
+  Rowv = FALSE,
+  Colv = FALSE
+)
+
+```
+
+
+### Group4
+```{r}
+group4_data <- crime_data %>% select(all_of(groups[[4]]))
+correlation_matrix2 <- cor(group4_data, use = "complete.obs")
+diag(correlation_matrix2) <- NA
+
+heatmaply(
+  correlation_matrix2,
+  main = "Heatmap for Group 2",
+  xlab = "Variables",
+  ylab = "Variables",
+  fontsize_row = 8,
+  fontsize_col = 8,
+  width = 750,
+  height = 600,
+  Rowv = FALSE,
+  Colv = FALSE
+)
+
+```
+
+
+
+Map + Pie Chart 
+====================================
+
+```{r, include=FALSE}
+# Load the necessary libraries
+library(flexdashboard)
+library(ggplot2)
+library(dplyr)
+library(maps)
+library(plotly)
+library(tidyr)
+
+# Load the dataset
+crimedata <- read.csv("crimedata.csv")
+
+# Calculate the average crime rate and other statistics for each state
+state_crime_rate <- crimedata %>% 
+  group_by(state) %>% 
+  summarise(
+    LandArea = mean(LandArea, na.rm = TRUE),
+    perCapInc = mean(perCapInc, na.rm = TRUE),
+    population = mean(population, na.rm = TRUE),
+    PopDens = mean(PopDens, na.rm = TRUE),
+    ViolentCrimesPerPop = mean(ViolentCrimesPerPop, na.rm = TRUE),
+    nonViolPerPop = mean(nonViolPerPop, na.rm = TRUE),
+    murders = mean(murders, na.rm = TRUE),
+    rapes = mean(rapes, na.rm = TRUE),
+    robberies = mean(robberies, na.rm = TRUE),
+    assaults = mean(assaults, na.rm = TRUE),
+    burglaries = mean(burglaries, na.rm = TRUE),
+    larcenies = mean(larcenies, na.rm = TRUE),
+    autoTheft = mean(autoTheft, na.rm = TRUE),
+    arsons = mean(arsons, na.rm = TRUE),
+    agePct12t21 = mean(agePct12t21, na.rm = TRUE),
+    racepctblack = mean(racepctblack, na.rm = TRUE)
+  )
+
+# Fill missing values with the median
+state_crime_rate <- state_crime_rate %>%
+  mutate(across(everything(), ~ replace_na(., median(., na.rm = TRUE))))
+
+# Load US map data
+us_map <- map_data("state")
+
+# Merge crime data with map data
+state_abbreviation <- data.frame(state = state.abb, region = tolower(state.name))
+state_crime_rate <- state_crime_rate %>% 
+  left_join(state_abbreviation, by = "state")
+
+merged_data <- us_map %>% 
+  left_join(state_crime_rate, by = "region")
+```
+
+Row 
+--------------------------------
+
+### Crime Rate Map
+```{r}
+# Set predefined choices (no Shiny controls)
+crime_type <- "murders"
+age_group <- "agePct12t21"
+race_group <- "racepctblack"
+general_info <- "population"
+
+# Prepare data for plotting
+merged_data <- merged_data %>%
+  mutate(
+    crime_rate = .data[[crime_type]],
+    age_rate = .data[[age_group]],
+    race_rate = .data[[race_group]],
+    general_info = .data[[general_info]]
+  )
+
+# Calculate state centers for labeling
+state_centers <- merged_data %>% 
+  group_by(region) %>% 
+  summarize(
+    long = mean(long, na.rm = TRUE),
+    lat = mean(lat, na.rm = TRUE),
+    state = unique(state)
+  )
+
+# Create the map
+p <- ggplot(merged_data, aes(
+  x = long, y = lat, group = group,
+  fill = crime_rate,
+  text = paste(
+    "State:", region, "<br>",
+    "Crime Type (Murders):", round(crime_rate, 2), "<br>",
+    "Age Group (12-21%):", round(age_rate, 2), "<br>",
+    "Race Group (Black%):", round(race_rate, 2), "<br>",
+    "General Info (Population):", round(general_info, 2)
+  )
+)) +
+  geom_polygon(color = "white") +
+  scale_fill_gradient(low = "#F2D0D0", high = "#C3272B", name = "Crime Rate") +
+  coord_fixed(ratio = 1.3) +
+  geom_text(data = state_centers, aes(x = long, y = lat, label = state),
+            color = "black", size = 3, fontface = "bold", inherit.aes = FALSE) +
+  theme_minimal() +
+  labs(
+    title = "Average Murders by State",
+    subtitle = "Hover to see state details",
+    x = "", y = ""
+  ) +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()
+  )
+
+# Convert to Plotly for interactivity
+ggplotly(p, tooltip = "text", width = 1300, height=700) 
+```
+
+
+Column {data-width=50%}
+------------------------------------
+
+```{r}
+# Count the total number of different crime types
+crime_data <- data.frame(
+  CrimeType = c("Murders", "Rapes", "Robberies", "Assaults", 
+                "Burglaries", "Larcenies", "AutoTheft", "Arsons"),
+  Count = colSums(crimedata[, c("murders", "rapes", "robberies", "assaults", 
+                                "burglaries", "larcenies", "autoTheft", "arsons")], na.rm = TRUE)
+)
+
+# Normalized percentage
+crime_data <- crime_data %>%
+  mutate(Percentage = Count / sum(Count) * 100)
+
+# Adjust the percentages to make sure the sum is 100%
+error <- 100 - sum(crime_data$Percentage)               # Calculation error
+crime_data$Percentage[which.max(crime_data$Percentage)] <- 
+  crime_data$Percentage[which.max(crime_data$Percentage)] + error  # Assign the error to the maximum value
+
+# Draw the pie chart using plotly
+crime_pie <- plot_ly(
+  crime_data, labels = ~CrimeType, values = ~Percentage, type = 'pie',
+  textinfo = 'label+percent',
+  insidetextorientation = 'auto',
+  marker = list(colors = c('#FF5733', '#FADA54', '#81CAC3', '#FFAE8C', '#FFA63B', '#35A9DA', '#D1AECE'))
+) %>%
+  layout(
+    title = "Crime Data Distribution (1995)",
+    width = 700, height = 650,
+    margin = list(l = 0, r = 0, t = 50, b = 110)
+  )
+
+crime_pie
+```
+
+
+```{r}
+# Calculate average race data
+race_data <- data.frame(
+  RaceGroup = c("Black", "White", "Asian", "Hispanic"),
+  Percentage = colMeans(crimedata[, c("racepctblack", "racePctWhite", "racePctAsian", "racePctHisp")], na.rm = TRUE)
+)
+
+# Race distribution pie chart
+rp <- plot_ly(
+  race_data, labels = ~RaceGroup, values = ~Percentage, type = 'pie',
+  textinfo = 'label+percent',
+  insidetextorientation = 'radial',
+  marker = list(colors = c('#9999FF', '#FF9999', '#40c2a8', '#FFD700'))
+) %>%
+  layout(
+    title = "Average Race Distribution (Percentage)",
+    width = 700, height = 650,
+    margin = list(l = 0, r = 0, t = 50, b = 110),
+    pie = list(domain = list(x = c(0.4, 0.5), y = c(0.4, 0.5)))
+  )
+
+# Print the pie chart
+rp
+```
+
+Column{data-width=50%}
+------------------------------------
+
+```{r}
+# Detailed education level pie chart
+detailed_education_data <- data.frame(
+  Category = c("Less than 9th Grade", "Not High School Graduate", "Bachelor's or More"),
+  Percentage = colMeans(crimedata[, c("PctLess9thGrade", "PctNotHSGrad", "PctBSorMore")], na.rm = TRUE)
+)
+
+# Detailed education level pie chart
+dep <- plot_ly(
+  detailed_education_data, labels = ~Category, values = ~Percentage, type = 'pie',
+  textinfo = 'label+percent',
+  insidetextorientation = 'auto',
+  marker = list(colors = c('#C9EBD8', '#FFBADC', '#f7d323'))
+) %>%
+  layout(
+    title = "Detailed Education Levels (Percentage)",
+    width = 700, height = 600,
+    margin = list(l = 0, r = 0, t = 50, b = 80),
+    pie = list(domain = list(x = c(0.4, 0.5), y = c(0.4, 0.5)))
+  )
+
+# Print the pie chart
+dep
+```
+
+```{r}
+# Calculate average crime data
+crime_data <- data.frame(
+  CrimeType = c("ViolentCrimesPerPop", "nonViolPerPop"),
+  AverageRate = colMeans(crimedata[, c("ViolentCrimesPerPop", "nonViolPerPop")], na.rm = TRUE)
+)
+
+# Create an interactive pie chart for the crime data
+ep_crime <- plot_ly(
+  crime_data, labels = ~CrimeType, values = ~AverageRate, type = 'pie',
+  textinfo = 'label+percent',
+  insidetextorientation = 'radial',
+  marker = list(colors = c('#DC143C', '#00CED1'))
+) %>%
+  layout(
+    title = "Average Crime Rates (Per 100,000 People)",
+    width = 700, height = 600,
+    margin = list(l = 0, r = 0, t = 50, b = 60),
+    pie = list(domain = list(x = c(0.4, 0.5), y = c(0.4, 0.5)))
+  )
+
+# Print the crime pie chart
+ep_crime
+```
+
+Total Crimes Ranking by States
+=====================================
+```{r include=FALSE}
+crimedata <- read.csv("crimedata.csv")  
+
+
+selected_data <- crimedata %>%
+  select(state, murders, rapes, robberies, assaults, burglaries, larcenies, autoTheft, arsons)
+
+selected_data <- selected_data %>%
+  mutate(
+    murders = ifelse(is.na(murders), median(murders, na.rm = TRUE), murders),
+    rapes = ifelse(is.na(rapes), median(rapes, na.rm = TRUE), rapes),
+    robberies = ifelse(is.na(robberies), median(robberies, na.rm = TRUE), robberies),
+    assaults = ifelse(is.na(assaults), median(assaults, na.rm = TRUE), assaults),
+    burglaries = ifelse(is.na(burglaries), median(burglaries, na.rm = TRUE), burglaries),
+    larcenies = ifelse(is.na(larcenies), median(larcenies, na.rm = TRUE), larcenies),
+    autoTheft = ifelse(is.na(autoTheft), median(autoTheft, na.rm = TRUE), autoTheft),
+    arsons = ifelse(is.na(arsons), median(arsons, na.rm = TRUE), arsons)
+  )
+
+state_crime_totals <- selected_data %>%
+  group_by(state) %>%
+  summarise(
+    murders = sum(murders, na.rm = TRUE),
+    rapes = sum(rapes, na.rm = TRUE),
+    robberies = sum(robberies, na.rm = TRUE),
+    assaults = sum(assaults, na.rm = TRUE),
+    burglaries = sum(burglaries, na.rm = TRUE),
+    larcenies = sum(larcenies, na.rm = TRUE),
+    autoTheft = sum(autoTheft, na.rm = TRUE),
+    arsons = sum(arsons, na.rm = TRUE),
+    total_crimes = sum(murders, rapes, robberies, assaults, burglaries, larcenies, autoTheft, arsons, na.rm = TRUE) # Calculate the total
+  )
+
+print(state_crime_totals)
+
+```
+
+Column {data-height=500}
+-------------------------------------------
+
+### Total Crimes Ranking by States
+
+```{r}
+p <- ggplot(state_crime_totals,
+            aes(x = reorder(state, -total_crimes), y = total_crimes,
+                fill = total_crimes,
+                text = paste('State: ', state, '<br>Total Crime: ', total_crimes))) +
+  geom_bar(stat = "identity") +
+  scale_fill_gradient(low = "#ADD8E6", high = "#8A2BE2") +
+  labs(title = "Total Crimes Ranking by States",
+       x = "States",
+       y = "Total Crimes",
+       fill = "Total Crimes"
+       ) +
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+
+p_interactive <- ggplotly(p, tooltip = "text")
+
+p_interactive
+```
+
+
+Column {data-height=500}
+---------------------------------------
+
+```{r include=FALSE}
+long_data <- selected_data %>%
+  group_by(state) %>%
+  summarise(
+    murders = sum(murders, na.rm = TRUE),
+    rapes = sum(rapes, na.rm = TRUE),
+    robberies = sum(robberies, na.rm = TRUE),
+    assaults = sum(assaults, na.rm = TRUE),
+    burglaries = sum(burglaries, na.rm = TRUE),
+    larcenies = sum(larcenies, na.rm = TRUE),
+    autoTheft = sum(autoTheft, na.rm = TRUE),
+    arsons = sum(arsons, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    cols = -state, 
+    names_to = "crime_type", 
+    values_to = "crime_count"
+  ) %>%
+  mutate(
+    crime_type = case_when(
+      crime_type %in% c("murders", "rapes", "arsons") ~ "Other",
+      TRUE ~ crime_type
+    )
+  ) %>%
+  group_by(state, crime_type) %>%
+  summarise(
+    total_crime_count = sum(crime_count, na.rm = TRUE), 
+    .groups = "drop"
+  ) %>%
+  group_by(state) %>%
+  mutate(
+    total_crime_in_state = sum(total_crime_count, na.rm = TRUE),
+    crime_per = total_crime_count / total_crime_in_state
+  ) %>%
+  arrange(state, desc(crime_per)) %>%
+  ungroup()
+
+print(long_data)
+```
+### Crime Plot {.plotly}
+
+```{r}
+crime_type_order <- long_data %>%
+  group_by(crime_type) %>%
+  summarise(total_crime = sum(total_crime_count, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(total_crime)) %>%
+  pull(crime_type)
+
+# 
+top_states <- long_data %>%
+  group_by(state) %>%
+  summarise(total_crime = sum(total_crime_in_state, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(total_crime)) %>%
+  slice_head(n = 5) %>%  
+  pull(state)
+
+# Sort by total crime count and select the top 5 states
+filtered_data <- long_data %>%
+  filter(state %in% top_states) %>%
+  mutate(crime_type = factor(crime_type, levels = crime_type_order))
+
+p <- ggplot(filtered_data, aes(
+  x = state,
+  y = crime_per,
+  fill = crime_type,
+  text = paste(
+    "State: ", state,
+    "<br>Crime Type: ", crime_type,
+    "<br>Proportion: ", percent(crime_per, accuracy = 0.1)
+  )
+)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(
+    aes(label = percent(crime_per, accuracy = 0.1)),
+    position = position_stack(vjust = 0.5),
+    size = 3,
+    color = "black"
+  ) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_brewer(palette = "Set3") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.title = element_blank(),
+    plot.margin = margin(1, 2, 1, 1, "cm")
+  ) +
+  labs(
+    title = "Crime Types in Top 5 States",
+    fill = "Crime Type"
+  )
+
+# Convert to an interactive chart
+p_interactive <- ggplotly(p, tooltip = "text")
+
+p_interactive
+```
+
+Column 1 {.column data-width=600}
+-----------------------------------------------------------------------
+```{r, include=FALSE}
+
+
+# Data preprocessing, select and calculate the required columns
+selected_data_1 <- crimedata %>%
+  filter(state == "NJ") %>%  # Filter only New Jersey
+  select(state, communityName, population, murders, rapes, robberies, assaults, burglaries, larcenies, autoTheft, arsons, perCapInc, PctLess9thGrade, PctNotHSGrad, PctBSorMore) %>%
+  mutate(
+    murders = ifelse(is.na(murders), median(murders, na.rm = TRUE), murders),
+    rapes = ifelse(is.na(rapes), median(rapes, na.rm = TRUE), rapes),
+    robberies = ifelse(is.na(robberies), median(robberies, na.rm = TRUE), robberies),
+    assaults = ifelse(is.na(assaults), median(assaults, na.rm = TRUE), assaults),
+    burglaries = ifelse(is.na(burglaries), median(burglaries, na.rm = TRUE), burglaries),
+    larcenies = ifelse(is.na(larcenies), median(larcenies, na.rm = TRUE), larcenies),
+    autoTheft = ifelse(is.na(autoTheft), median(autoTheft, na.rm = TRUE), autoTheft),
+    arsons = ifelse(is.na(arsons), median(arsons, na.rm = TRUE), arsons)
+  ) %>%
+  mutate(
+    total_crime = murders + rapes + robberies + assaults + burglaries + larcenies + autoTheft + arsons,
+    crime_rate = total_crime / population * 100000
+  ) %>%
+  select(-murders, -rapes, -robberies, -assaults, -burglaries, -larcenies, -autoTheft, -arsons)
+
+selected_data_1 <- selected_data_1 %>%
+  mutate(
+    NoHigherEdu = PctLess9thGrade + PctNotHSGrad,
+    HigherEdu = PctBSorMore
+  ) %>%
+  select(state, communityName, population, perCapInc, NoHigherEdu, HigherEdu, total_crime, crime_rate)
+
+# Convert to long format data
+long_data_1 <- selected_data_1 %>%
+  pivot_longer(
+    cols = c(NoHigherEdu, HigherEdu),
+    names_to = "Education_Level",
+    values_to = "Percentage"
+  )
+```
+
+
+
+### Crime Rate vs Per Capita Income
+```{r}
+# Plot the crime rate versus income per capita
+p1 <- ggplot(selected_data_1, aes(x = perCapInc, y = crime_rate)) +
+  geom_point(color = "#69b3a2", size = 1.5) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "#a89181", linetype = "dashed") +
+  ggtitle("Crime Rate vs Per Capita Income (NJ)") +
+  labs(y = "Crime Rate", x = "Per Capita Income") +
+  theme_minimal()
+
+ggplotly(p1)
+```
+
+### Crime Rate vs Education Level
+
+```{r}
+custom_colors <- c("#779de9", "#f8c1b7") 
+
+# Plot the crime rate versus education level
+p2 <- ggplot(long_data_1, aes(x = Percentage, y = crime_rate, color = Education_Level, shape = Education_Level)) +
+  geom_point(alpha = 0.8, size = 2, aes(text = paste("Education Level:", Education_Level, "<br>Proportion:", round(Percentage, 2), "%"))) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE) +  
+  labs(
+    title = "Crime Rate vs Education Level (NJ)",
+    x = "Proportion of Education Level (%)",
+    y = "Crime Rate",
+    shape = "Education Level",
+    color = "Education Level"
+  ) +
+  scale_color_manual(values = custom_colors) +  
+  theme_minimal()
+
+ggplotly(p2, tooltip = "text") %>% layout(showlegend = TRUE)
+```
+
+
+
+Relationship between age and violent and nonviolent crime
+==============================
+
+Column{data-width=200}
+-------------------------------
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(plotly)
+
+
+data <- read.csv("crimedata.csv")
+
+```
+
+```{r}
+
+data_long <- data %>%
+  select(agePct12t21, agePct12t29, agePct16t24, agePct65up, ViolentCrimesPerPop, nonViolPerPop) %>%
+  pivot_longer(cols = starts_with("agePct"), names_to = "Age_Group", values_to = "Percentage")
+```
+
+```{r}
+
+lm_model <- lm(ViolentCrimesPerPop ~ Percentage + Age_Group, data = data_long)
+
+
+data_long <- data_long %>%
+  mutate(predicted = predict(lm_model, newdata = data_long))
+
+
+p1 <- plot_ly(data_long, 
+               x = ~Percentage, 
+               y = ~ViolentCrimesPerPop, 
+               color = ~Age_Group, 
+               text = ~paste("Age Group:", Age_Group, "<br>Violent Crimes:", ViolentCrimesPerPop),
+               type = "scatter", 
+               mode = "markers") %>%
+  add_trace(x = ~Percentage, 
+            y = ~predicted, 
+            mode = 'lines', 
+            line = list(color = 'Age Group'), 
+            name = 'Regression Line') %>%
+  layout(title = "Age Percentage vs Violent Crimes per Population", 
+         xaxis = list(title = "Age Percentage"), 
+         yaxis = list(title = "Violent Crimes per Population"))
+
+
+p1
+```
+
+
+
+```{r}
+
+lm_non_violent <- lm(nonViolPerPop ~ Percentage + Age_Group, data = data_long)
+
+
+data_long <- data_long %>%
+  mutate(predicted_non_violent = predict(lm_non_violent, newdata = data_long))
+
+
+p2 <- plot_ly(data_long, 
+               x = ~Percentage, 
+               y = ~nonViolPerPop, 
+               color = ~Age_Group, 
+               text = ~paste("Age Group:", Age_Group, "<br>Non-Violent Crimes:", nonViolPerPop),
+               type = "scatter", 
+               mode = "markers") %>%
+  add_trace(x = ~Percentage, 
+            y = ~predicted_non_violent, 
+            mode = 'lines', 
+            line = list(color = 'Age Group'), 
+            name = 'Regression Line') %>%
+  layout(title = "Age Percentage vs Non-Violent Crimes per Population", 
+         xaxis = list(title = "Age Percentage"), 
+         yaxis = list(title = "Non-Violent Crimes per Population"))
+
+
+p2
+
+```
+
+```{r}
+data <- read.csv("crimedata.csv")
+```
+
+Race and Population
+=====================================
+
+Row
+-------------------------------
+
+### race vs ViolentCrimesPerPop
+```{r}
+data <- data %>%
+  mutate(
+    dominant_race = case_when(
+      racepctblack == pmax(racepctblack, racePctWhite, racePctAsian, racePctHisp) ~ "Black",
+      racePctWhite == pmax(racepctblack, racePctWhite, racePctAsian, racePctHisp) ~ "White",
+      racePctAsian == pmax(racepctblack, racePctWhite, racePctAsian, racePctHisp) ~ "Asian",
+      racePctHisp == pmax(racepctblack, racePctWhite, racePctAsian, racePctHisp) ~ "Hispanic",
+      TRUE ~ "Other"
+    )
+  )
+
+
+
+p3 <- plot_ly(data,
+              x = ~state,
+              y = ~ViolentCrimesPerPop,
+              text = paste("community:", data$communityName,
+                           "ViolentCrimesPerPop:", data$ViolentCrimesPerPop,
+                           "Race:", data$dominant_race),
+              type = "scatter",
+              mode = "markers",
+              color = ~dominant_race,
+              colors = c("Black" = "#000000",
+                          "White" = "#ffc0cb", 
+                          "Asian" = "#ffff00", 
+                          "Hispanic" = "#FF6347"),
+              marker = list(size = 10,opacity = 0.7)
+              ) %>%
+  layout(xaxis = list(title="State"),
+                yaxis = list(title = "ViolentCrimesPerPop"),
+                showlegend = TRUE)
+p3
+```
+
+Row
+-------------------------------
+
+### race vs nonViolPerPop
+```{r}
+data <- data %>%
+  mutate(
+    dominant_race = case_when(
+      racepctblack == pmax(racepctblack, racePctWhite, racePctAsian, racePctHisp) ~ "Black",
+      racePctWhite == pmax(racepctblack, racePctWhite, racePctAsian, racePctHisp) ~ "White",
+      racePctAsian == pmax(racepctblack, racePctWhite, racePctAsian, racePctHisp) ~ "Asian",
+      racePctHisp == pmax(racepctblack, racePctWhite, racePctAsian, racePctHisp) ~ "Hispanic",
+      TRUE ~ "Other"
+    )
+  )
+
+
+
+p3 <- plot_ly(data,
+              x = ~state,
+              y = ~nonViolPerPop,
+              text = paste("community:", data$communityName,
+                           "nonViolPerPop:", data$nonViolPerPop,
+                           "Race:", data$dominant_race),
+              type = "scatter",
+              mode = "markers",
+              color = ~dominant_race,
+              colors = c("Black" = "#000000",
+                          "White" = "#ffc0cb", 
+                          "Asian" = "#ffff00", 
+                          "Hispanic" = "#FF6347"),
+              marker = list(size = 10,opacity = 0.7)
+              ) %>%
+         layout(xaxis = list(title="State"),
+                yaxis = list(title = "nonViolPerPop"),
+                showlegend = TRUE)
+p3
+```
+
+Row
+-------------------------------
+
+### population vs race
+```{r}
+library(tidyr)
+data <- data %>%
+select(state, racepctblack, racePctWhite, racePctAsian, racePctHisp,communityName) %>%
+  gather(key = "race", value = "percentage", racepctblack, racePctWhite, racePctAsian, racePctHisp) %>%
+  mutate(race = factor(race, levels = c("racepctblack", "racePctWhite", "racePctAsian", "racePctHisp"),
+                       labels = c("Black", "White", "Asian", "Hispanic")),
+    population_count = data$population * percentage / 100)
+
+p31 <- plot_ly(data,
+              x = ~state,
+              y = ~population_count,
+              text = paste("community:", data$communityName,
+                           "population:", data$population,
+                           "Race:", data$race),
+              type = "bar",
+              mode = "markers",
+              color = ~race,
+              colors = c("Black" = "#000000",
+                          "White" = "#ffc0cb", 
+                          "Asian" = "#ffff00", 
+                          "Hispanic" = "#FF6347"),
+              marker = list(size = 10,opacity = 0.7)
+              ) %>%
+         layout(barmode = "stack",
+                xaxis = list(title="State"),
+                yaxis = list(title = "Population"),
+                showlegend = TRUE)
+p31
+
+
+```
+
+Data Table
+========================================
+
+```{r}
+cdata <- read.csv("processed_crimedata.csv")
+```
+
+```{r}
+datatable(cdata,
+          caption = "Failure Data",
+          rownames = T,
+          filter = "top",
+          options = list(pageLength = 25))
+```
+
+Summary
+========================================
+These analyses reveal a complex relationship between crime rates and economic factors, racial composition and age, suggesting that crime is not just a single social problem, but is inffuenced by the interaction of multiple factors. An in-depth analysis of the association between a number of social factors and crime rates in the United States reveals that areas with higher per capita incomes typically have lower crime rates, while areas with higher levels of poverty and lower levels of education tend to face higher crime pressures. This phenomenon may be closely related to the scarcity of resources, higher unemployment and the existence of social inequalities.
+
+
+In addition, racial composition plays a signiffcant role in crime rates. There are differences in the extent to which different racial groups are involved in different types of crime, and certain racial groups may be exposed to a higher risk of crime in particular neighborhoods.
+
+
+
+These analyses provide a more complete understanding of the spatial distribution of crime rates across U.S. states and the multiple factors that inffuence this distribution. This understanding provides policymakers with a more speciffc social context to help them design more targeted and effective
+interventions to reduce crime rates.
+
+
+
+
+
